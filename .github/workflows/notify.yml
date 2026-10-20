@@ -1,0 +1,44 @@
+name: GitHub to Feishu Notification
+
+on:
+  push:
+    branches: [ "main" ] # 当你往 main 分支提交代码时触发
+  issues:
+    types: [opened]      # 或者有新建 Issue 时触发
+
+jobs:
+  send-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Send message to Feishu
+        env:
+          FEISHU_URL: ${{ secrets.FEISHU_WEBHOOK }}
+        run: |
+          python -c "
+          import os, requests, json
+          
+          url = os.environ.get('FEISHU_URL')
+          
+          # 这就是你的'翻译官'代码！
+          data = {
+              'msg_type': 'text',
+              'content': {
+                  'text': '🚀 GitHub Actions 机器人报告：收到新动作！'
+              }
+          }
+          
+          res = requests.post(url, json=data)
+          print('发送状态:', res.status_code)
+          print(res.text)
+          "
